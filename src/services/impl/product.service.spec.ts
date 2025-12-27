@@ -6,6 +6,9 @@ import {mockDeep, type DeepMockProxy} from 'vitest-mock-extended';
 import {type INotificationService} from '../notifications.port.js';
 import {createDatabaseMock, cleanUp} from '../../utils/test-utils/database-tools.ts.js';
 import {ProductService} from './product.service.js';
+import {NormalProductHandler} from '../handlers/normal-product.handler.js';
+import {SeasonalProductHandler} from '../handlers/seasonal-product.handler.js';
+import {ExpirableProductHandler} from '../handlers/expirable-product.handler.js';
 import {products, type Product} from '@/db/schema.js';
 import {type Database} from '@/db/type.js';
 
@@ -18,9 +21,18 @@ describe('ProductService Tests', () => {
 	beforeEach(async () => {
 		({databaseMock, databaseName} = await createDatabaseMock());
 		notificationServiceMock = mockDeep<INotificationService>();
+
+		// Create handlers with mocked NotificationService
+		const handlers = [
+			new NormalProductHandler(notificationServiceMock),
+			new SeasonalProductHandler(notificationServiceMock),
+			new ExpirableProductHandler(notificationServiceMock),
+		];
+
 		productService = new ProductService({
 			ns: notificationServiceMock,
 			db: databaseMock,
+			handlers,
 		});
 	});
 
